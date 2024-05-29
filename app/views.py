@@ -1,7 +1,8 @@
 from django.shortcuts import render, redirect, get_object_or_404
-
+from django.urls import reverse_lazy
 from .forms import *
 from django.contrib.auth import login as auth_login, logout
+from django.contrib.auth.views import PasswordResetView
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.contrib.messages.views import SuccessMessageMixin
@@ -11,6 +12,18 @@ from .models import HospitalProfile
 
 
 # Create your views here.
+
+class ResetPasswordView(SuccessMessageMixin, PasswordResetView):
+    template_name = 'pages/oauth/password_reset.html'
+    email_template_name = 'pages/oauth/password_reset_email.html'
+    subject_template_name = 'pages/oauth/password_reset_subject.txt'
+    success_message = "We've emailed you instructions for setting reset your password, "\
+                    "If an account exits with the email you entered. You should receive them shortly."\
+                    "If you don't receive an email,"\
+                    "Please make sure you've entered the address you registered with, and check your spam folder."
+    success_url = reverse_lazy('login')
+                        
+
 @login_required
 def index(request):
     user_type = request.user.user_type
@@ -56,7 +69,7 @@ def login(request):
         if form.is_valid():
             user = form.get_user()
             auth_login(request, user)
-            return redirect('home')
+            return redirect('/')
             # print('Okay')
         else:
             messages.warning(request, 'Username or Password is incorrect')
@@ -82,7 +95,7 @@ def edit_hospital_profile(request):
     except HospitalProfile.DoesNotExist:
         # Handle the case where the hospital profile does not exist for the current user
         # You may want to create a new profile or redirect to a different page
-        return redirect('home')
+        return redirect('/')
 
     hospital_profile = HospitalProfile.objects.get(user=request.user)
 
@@ -100,7 +113,7 @@ def edit_hospital_profile(request):
         if hospital_form.is_valid():
             hospital_form.save()
             messages.success(request, 'Profile updated successfully!')
-            return redirect('home')
+            return redirect('/')
         else:
             # Form is not valid, display errors to the user
             # You may want to render the form again with error messages
@@ -125,7 +138,7 @@ def edit_patients_profile(request):
     except PatientsProfile.DoesNotExist:
         # Handle the case where the hospital profile does not exist for the current user
         # You may want to create a new profile or redirect to a different page
-        return redirect('home')
+        return redirect('/')
 
     patient_profile = PatientsProfile.objects.get(user=request.user)
 
@@ -136,7 +149,7 @@ def edit_patients_profile(request):
         if patient_form.is_valid():
             patient_form.save()
             messages.success(request, 'Profile updated successfully!')
-            return redirect('home')
+            return redirect('/')
         else:
             # Form is not valid, display errors to the user
             # You may want to render the form again with error messages
